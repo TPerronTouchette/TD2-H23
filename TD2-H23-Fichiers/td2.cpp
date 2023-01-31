@@ -51,9 +51,23 @@ string lireString(istream& fichier)
 
 //TODO: Une fonction pour ajouter un Film à une ListeFilms, le film existant déjà; on veut uniquement ajouter le pointeur vers le film existant.  Cette fonction doit doubler la taille du tableau alloué, avec au minimum un élément, dans le cas où la capacité est insuffisante pour ajouter l'élément.  Il faut alors allouer un nouveau tableau plus grand, copier ce qu'il y avait dans l'ancien, et éliminer l'ancien trop petit.  Cette fonction ne doit copier aucun Film ni Acteur, elle doit copier uniquement des pointeurs.
 void ajouterFilmAListe(ListeFilms& listeFilms, Film& nouveauFilm) {
-	if (listeFilms.capacite == listeFilms.nElements) {
-
+	if (listeFilms.capacite == 0) {
+		listeFilms.capacite = 2;
+		Film** nouvelleElements = new Film*[listeFilms.capacite];
+		delete[] listeFilms.elements;
+		listeFilms.elements = nouvelleElements;
 	}
+	else if(listeFilms.capacite == listeFilms.nElements) {
+		listeFilms.capacite *= 2;
+		Film** nouvelleElements = new Film*[listeFilms.capacite];
+		
+		for (unsigned i = 0; i < listeFilms.nElements; i++) {
+			nouvelleElements[i] = listeFilms.elements[i];
+		}
+		delete[] listeFilms.elements;
+		listeFilms.elements = nouvelleElements;
+	}
+	listeFilms.elements[listeFilms.nElements++] = &nouveauFilm;
 }
 //TODO: Une fonction pour enlever un Film d'une ListeFilms (enlever le pointeur) sans effacer le film; la fonction prenant en paramètre un pointeur vers le film à enlever.  L'ordre des films dans la liste n'a pas à être conservé.
 
@@ -135,7 +149,10 @@ void afficherFilmographieActeur(const ListeFilms& listeFilms, const string& nomA
 int main()
 {
 	bibliotheque_cours::activerCouleursAnsi();  // Permet sous Windows les "ANSI escape code" pour changer de couleurs https://en.wikipedia.org/wiki/ANSI_escape_code ; les consoles Linux/Mac les supportent normalement par défaut.
-
+	Film A;
+	Film B;
+	Film C;
+	
 	int* fuite = new int; //TODO: Enlever cette ligne après avoir vérifié qu'il y a bien un "Fuite detectee" de "4 octets" affiché à la fin de l'exécution, qui réfère à cette ligne du programme.
 
 	static const string ligneDeSeparation = "\n\033[35m════════════════════════════════════════\033[0m\n";
@@ -144,7 +161,13 @@ int main()
 
 	//TODO: La ligne suivante devrait lire le fichier binaire en allouant la mémoire nécessaire.  Devrait afficher les noms de 20 acteurs sans doublons (par l'affichage pour fins de débogage dans votre fonction lireActeur).
 	ListeFilms listeFilms = creerListe("films.bin");
-	
+	ajouterFilmAListe(listeFilms, A);
+	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
+	ajouterFilmAListe(listeFilms, B);
+	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
+	ajouterFilmAListe(listeFilms, C);
+	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
+	delete[] listeFilms.elements;
 	cout << ligneDeSeparation << "Le premier film de la liste est:" << endl;
 	//TODO: Afficher le premier film de la liste.  Devrait être Alien.
 	
