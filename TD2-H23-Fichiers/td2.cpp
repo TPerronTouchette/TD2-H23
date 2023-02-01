@@ -16,6 +16,8 @@
 #include "verification_allocation.hpp" // Nos fonctions pour le rapport de fuites de mémoire.
 #include "debogage_memoire.hpp"        // Ajout des numéros de ligne des "new" dans le rapport de fuites.  Doit être après les include du système, qui peuvent utiliser des "placement new" (non supporté par notre ajout de numéros de lignes).
 
+int test;
+
 using namespace std;
 using namespace iter;
 using namespace gsl;
