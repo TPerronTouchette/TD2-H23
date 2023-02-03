@@ -56,21 +56,18 @@ void ajouterFilmAListe(ListeFilms& listeFilms, Film& nouveauFilm) {
 	if (listeFilms.capacite == 0) {
 		listeFilms.capacite = 2;
 		Film** nouvelleElements = new Film*[listeFilms.capacite];
-		nouvelleElements[0] = new Film(nouveauFilm);
-		
+		//On supprime l'ancien tableau
 		delete[] listeFilms.elements;
 		listeFilms.elements = nouvelleElements;
-		delete nouvelleElements[0];
-
 	}
 	else if(listeFilms.capacite == listeFilms.nElements) {
 		listeFilms.capacite *= 2;
 		Film** nouvelleElements = new Film*[listeFilms.capacite];
 		
 		for (unsigned i = 0; i < listeFilms.nElements; ++i) {
-			nouvelleElements[i] = new Film;
 			nouvelleElements[i] = listeFilms.elements[i];
 		}
+		//On supprime l'ancien tableau
 		delete[] listeFilms.elements;
 		listeFilms.elements = nouvelleElements;
 	}
@@ -78,19 +75,29 @@ void ajouterFilmAListe(ListeFilms& listeFilms, Film& nouveauFilm) {
 }
 //TODO: Une fonction pour enlever un Film d'une ListeFilms (enlever le pointeur) sans effacer le film; la fonction prenant en paramètre un pointeur vers le film à enlever.  L'ordre des films dans la liste n'a pas à être conservé.
 void retirerFilmDeListe(Film *filmARetirer, ListeFilms& listeFilms) {
-	cout << &filmARetirer << endl;
 	for (int i = 0; i < listeFilms.nElements; ++i) {
-		cout << &listeFilms.elements[i] << endl;
-		if (&listeFilms.elements[i] == &filmARetirer) {
-			delete listeFilms.elements[i];
-			cout << &listeFilms.elements[i]<<endl;
+		if (&*listeFilms.elements[i] == filmARetirer) {
+			//si le film a enlever est le dernier film de la liste, alors on met le pointeur vers nullptr
+			if (i + 1 == listeFilms.nElements) {
+				listeFilms.elements[i] = nullptr;
+			}
+			//Sinon  on remplace le film a enlever par le dernier film de la liste et on fait pointer le dernier pointeur vers nullptr
+			else {
+				listeFilms.elements[i] = listeFilms.elements[listeFilms.nElements - 1];
+				listeFilms.elements[listeFilms.nElements - 1] = nullptr;
+			}
+			break;
 		}
 	}
 	--listeFilms.nElements;
+	return;
 }
 
 //TODO: Une fonction pour trouver un Acteur par son nom dans une ListeFilms, qui retourne un pointeur vers l'acteur, ou nullptr si l'acteur n'est pas trouvé.  Devrait utiliser span.
+Acteur* trouveActeurParNom(const string& nom, ListeFilms listeFilms) {
 
+	return {};
+}
 //TODO: Compléter les fonctions pour lire le fichier et créer/allouer une ListeFilms.  La ListeFilms devra être passée entre les fonctions, pour vérifier l'existence d'un Acteur avant de l'allouer à nouveau (cherché par nom en utilisant la fonction ci-dessus).
 Acteur* lireActeur(istream& fichier)
 {
@@ -122,17 +129,27 @@ ListeFilms creerListe(string nomFichier)
 	fichier.exceptions(ios::failbit);
 	
 	int nElements = lireUint16(fichier);
-
+	
 	//*TODO: Créer une liste de films vide.
+	ListeFilms listeFilms;
 	for (int i = 0; i < nElements; i++) {
-		lireFilm(fichier); //*TODO: Ajouter le film à la liste.
+		ajouterFilmAListe(listeFilms, *lireFilm(fichier)); //*TODO: Ajouter le film à la liste.
 	}
 	
-	return {}; //*TODO: Retourner la liste de films.
+	return listeFilms; //*TODO: Retourner la liste de films.
 }
 
 //*TODO: Une fonction pour détruire un film (relâcher toute la mémoire associée à ce film, et les acteurs qui ne jouent plus dans aucun films de la collection).  Noter qu'il faut enleve le film détruit des films dans lesquels jouent les acteurs.  Pour fins de débogage, affichez les noms des acteurs lors de leur destruction.
+void detruireFilm(Film& film, ListeFilms& listeFilms) {
+	retirerFilmDeListe(&film, listeFilms);
+	for (unsigned i = 0; i < film.acteurs.nElements; ++i) {
+		if (trouveActeurParNom(film.acteurs.elements[i]->nom, listeFilms) == nullptr) {
+			delete film.acteurs.elements[i];
+		}
+	}
+	delete &film;
 
+}
 //TODO: Une fonction pour détruire une ListeFilms et tous les films qu'elle contient.
 
 void afficherActeur(const Acteur& acteur)
@@ -184,7 +201,7 @@ int main()
 	//A = Film{ "","",0,0,ListeActeur(1,1,Acteur[0]{} };
 	Film B;
 	Film C;
-	Film* D = new Film(A);
+	Film* D = &A;
 	//int* fuite = new int; //TODO: Enlever cette ligne après avoir vérifié qu'il y a bien un "Fuite detectee" de "4 octets" affiché à la fin de l'exécution, qui réfère à cette ligne du programme.
 
 	static const string ligneDeSeparation = "\n\033[35m════════════════════════════════════════\033[0m\n";
@@ -195,10 +212,10 @@ int main()
 	ListeFilms listeFilms = creerListe("films.bin");
 	ajouterFilmAListe(listeFilms, A);
 	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
-	/*ajouterFilmAListe(listeFilms, B);
+	ajouterFilmAListe(listeFilms, B);
 	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
 	ajouterFilmAListe(listeFilms, C);
-	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;*/
+	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
 	cout << "addresse de A: "<<&A<<"\t"<<&*listeFilms.elements[0]<<endl;
 	retirerFilmDeListe(D, listeFilms);
 	cout << "addresse de A: " << &A << "\t" << &*listeFilms.elements[0] << endl;
@@ -206,7 +223,7 @@ int main()
 	afficherFilm(A);
 	cout << listeFilms.capacite << ' ' << listeFilms.nElements << endl;
 	delete[] listeFilms.elements;
-	delete D;
+	
 	cout << ligneDeSeparation << "Le premier film de la liste est:" << endl;
 	//TODO: Afficher le premier film de la liste.  Devrait être Alien.
 	
