@@ -74,7 +74,7 @@ void ajouterFilmAListe(ListeFilms& listeFilms, Film& nouveauFilm) {
 	listeFilms.elements[listeFilms.nElements++] = &nouveauFilm;
 }
 //TODO: Une fonction pour enlever un Film d'une ListeFilms (enlever le pointeur) sans effacer le film; la fonction prenant en paramètre un pointeur vers le film à enlever.  L'ordre des films dans la liste n'a pas à être conservé.
-void retirerFilmDeListe(Film *filmARetirer, ListeFilms& listeFilms) {
+void retirerFilmDeListe(const Film* filmARetirer, ListeFilms& listeFilms) {
 	for (int i = 0; i < listeFilms.nElements; ++i) {
 		if (&*listeFilms.elements[i] == filmARetirer) {
 			//si le film a enlever est le dernier film de la liste, alors on met le pointeur vers nullptr
@@ -94,7 +94,7 @@ void retirerFilmDeListe(Film *filmARetirer, ListeFilms& listeFilms) {
 }
 
 //TODO: Une fonction pour trouver un Acteur par son nom dans une ListeFilms, qui retourne un pointeur vers l'acteur, ou nullptr si l'acteur n'est pas trouvé.  Devrait utiliser span.
-Acteur* trouveActeurParNom(const string& nomActeur, ListeFilms listeFilms) {
+Acteur* trouveActeurParNom(const string& nomActeur,const ListeFilms& listeFilms) {
 
 	for (Film* film : span(listeFilms.elements, listeFilms.nElements)) {
 		for (Acteur* acteur : span(film->acteurs.elements, film->acteurs.nElements)) {
@@ -200,7 +200,7 @@ void afficherFilm(const Film& film) {
 		+ "\nSortie en:\t"s + to_string(film.anneeSortie)
 		+ "\nRecette:\t"s + to_string(film.recette) + " Million$"s
 		+ "\nListe des acteurs du film:\n"s;
-	for (int i = 0; i < film.acteurs.nElements; i++) {
+	for (unsigned i = 0U; i < film.acteurs.nElements; i++) {
 		cout << "\t"s;
 		afficherActeur(*film.acteurs.elements[i]);
 		
