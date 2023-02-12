@@ -76,7 +76,7 @@ void ajouterFilmAListe(ListeFilms& listeFilms,Film& nouveauFilm) {
 //TODO: Une fonction pour enlever un Film d'une ListeFilms (enlever le pointeur) sans effacer le film; la fonction prenant en paramètre un pointeur vers le film à enlever.  L'ordre des films dans la liste n'a pas à être conservé.
 void retirerFilmDeListe(const Film* filmARetirer, ListeFilms& listeFilms) {
 	for (int i = 0; i < listeFilms.nElements; ++i) {
-		if (&*listeFilms.elements[i] == filmARetirer) {
+		if (listeFilms.elements[i] == filmARetirer) {
 			//si le film a enlever est le dernier film de la liste, alors on met le pointeur vers nullptr
 			if (i + 1 == listeFilms.nElements) {
 				listeFilms.elements[i] = nullptr;
@@ -86,10 +86,11 @@ void retirerFilmDeListe(const Film* filmARetirer, ListeFilms& listeFilms) {
 				listeFilms.elements[i] = listeFilms.elements[listeFilms.nElements - 1];
 				listeFilms.elements[listeFilms.nElements - 1] = nullptr;
 			}
-			break;
+			--listeFilms.nElements;
+			return;
 		}
 	}
-	--listeFilms.nElements;
+	cout << "Ce film n'est pas dans la liste: " << filmARetirer->titre << endl;
 	return;
 }
 
@@ -164,7 +165,8 @@ ListeFilms creerListe(const string nomFichier)
 //*TODO: Une fonction pour détruire un film (relâcher toute la mémoire associée à ce film, et les acteurs qui ne jouent plus dans aucun films de la collection).  Noter qu'il faut enleve le film détruit des films dans lesquels jouent les acteurs.  Pour fins de débogage, affichez les noms des acteurs lors de leur destruction.
 void detruireFilm(Film& film, ListeFilms& listeFilms) {
 	retirerFilmDeListe(&film, listeFilms);
-	for (unsigned i = 0; i < film.acteurs.nElements; ++i) {\
+	for (unsigned i = 0; i < film.acteurs.nElements; ++i) {
+		retirerFilmDeListe(&film, film.acteurs.elements[i]->joueDans);
 		//si un acteur n'est plus dans aucun autre film
 		if (trouveActeurParNom(film.acteurs.elements[i]->nom, listeFilms) == nullptr) {
 			delete[] film.acteurs.elements[i]->joueDans.elements;  //désallocation du tableau de pointeur de film de l'acteur qui etait dans le film
